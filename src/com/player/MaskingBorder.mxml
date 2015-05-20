@@ -1,0 +1,45 @@
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.IVisualElement;
+			
+			[Bindable] public var horizontalScrollPosition:Number=0;
+			[Bindable] public var verticalScrollPosition:Number=0;
+			
+			[ArrayElementType("mx.core.IVisualElement")]
+			private var _content:Array;
+			
+			[ArrayElementType("mx.core.IVisualElement")]
+			public function set content(value:Array):void {
+				_content = value;
+			}
+			
+			override protected function createChildren():void {
+				super.createChildren();
+				if(container)
+					container.mxmlContent = _content;
+			}
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[DefaultProperty(name="content")]
+	</fx:Metadata>
+	<s:Group maskType="clip">
+		<s:mask>
+			<s:Graphic>
+				<s:Rect x="-0.5" y="-0.5"
+						width="{this.width-5}"
+						height="{this.height-5}">
+					<s:fill>
+						<s:SolidColor color="0xCCFFFF"/><!-- can be any color -->
+					</s:fill>
+				</s:Rect>
+			</s:Graphic>
+		</s:mask>
+		<s:Group id="container" clipAndEnableScrolling="true" width="100%" height="100%"
+				 horizontalScrollPosition="{horizontalScrollPosition}"
+				 verticalScrollPosition="{verticalScrollPosition}"/>
+	</s:Group>
+</s:BorderContainer>

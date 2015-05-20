@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   creationComplete="group1_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			private var _sv:StageVideo;
+			private var _vd:Video;
+			private var _obj:Object;
+			private var _ns:NetStream;
+			private var _stageVideoAv:Boolean = false;
+			
+			private var _currentTime:Number = 0.0;
+			private var ui:OuterUI;
+			private var _playing:Boolean = false;
+			
+			
+			public function get currentTime():Number
+			{
+				if(_ns)
+				{
+					_currentTime = _ns.time;
+				}
+				return _currentTime;
+			}
+
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+				_ns.seek(_currentTime);
+			}
+
+			private function onStageVideoAvailability(e:StageVideoAvailabilityEvent):void
+			{
+				_stageVideoAv = (e.availability == StageVideoAvailability.AVAILABLE);
+				//lab.text = lab.text + "Awailability "+ _stageVideoAv ;
+				//init();
+			}
+			
+			private function onAdded(e:Event):void
+			{
+				//lab.text = lab.text + "added to stage  "+ _stageVideoAv+ "stage : "+stage; 
+				stage.addEventListener(StageVideoAvailabilityEvent.STAGE_VIDEO_AVAILABILITY, onStageVideoAvailability);
+				
+				var v:Vector.<StageVideo> = stage.stageVideos;       
+				var sv:StageVideo;       
+				//lab.text = lab.text + "onstageVideo "+ v.length ;
+				if ( v.length >= 1 )       
+				{       
+					_sv = v[0];       
+				}
+				
+				_sv.attachNetStream(_ns);
+				initUI();
+				playVideo();
+				setPPTHori();
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				//onAdded();
+				this.addEventListener(Event.ADDED_TO_STAGE, onAdded);
+				// TODO Auto-generated method stub
+			}
+			
+			public function init():void
+			{
+				var nc:NetConnection = new NetConnection();
+				nc.connect(null);
+				
+				_ns =  new NetStream(nc);
+				_ns.addEventListener(NetStatusEvent.NET_STATUS, onStatus)
+				_obj = new Object();
+				_ns.client = _obj;
+				_ns.bufferTime = 2;
+				
+				_obj.onMetaInfo = onMetaInfo;
+				_obj.onDataEvent = onMetaInfo;
+				_obj.sendDataEvent  = onMetaInfo;
+				_obj.cuechange = onMetaInfo;
+				_obj.onCueChange = onMetaInfo;
+				_obj.onID3 = onID3;
+				//N.addHandler("onID3", onID3);
+				var snd:Sound = new Sound(new URLRequest("assets/hit.mp3")); 
+				snd.play();
+				_ns.client = _obj;
+			}
+			
+			private function onStatus(e:NetStatusEvent):void
+			{
+				e.info.code
+			}
+			
+			public function onID3(data:Object):void
+			{
+				lab.text = lab.text + "on onID3 Info" + data.toString();
+			}
+			
+			public function onMetaInfo(e:Object):void
+			{
+				
+				var pptStr:String = "";
+				lab.text = lab.text + "on Meta Info" +  e.toString();
+				if(e.hasOwnProperty("UserText"))
+				{
+					lab.text = lab.text + "added to stage  " + "Video meta data from FMS" + "</br>";;
+					pptStr = e.UserText.data
+				}
+				else
+				{
+					lab.text = lab.text + "added to stage  "+ "Video meta data from WOWZA" + "</br>";;
+					pptStr = e.toString();
+				}
+			}
+			
+			private function initUI():void
+			{
+				ui = new OuterUI();
+				ui.width = 500;
+				ui.height = 350;
+				ui.x = -100;
+				ui.y = -10;
+				var uiComp:UIComponent = new UIComponent();
+				uiComp.addChild(ui);
+				addElement(uiComp);
+				
+			}
+			
+			private function stageVideoStateChange(event:StageVideoEvent):void       
+			{          
+				var status:String = event.status;       
+				lab.text = lab.text + "   Status :::: " +status
+				//resize();       
+			}
+			
+			private function playVideo():void
+			{
+				var videoFilePath:String = "rtmp://182.74.226.108/live/livestream";
+				//var videoFilePath:String = "http://192.168.2.16/vod/sample1.f4m"
+				//var videoFilePath:String = "http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8";
+				_sv.addEventListener(StageVideoEvent.RENDER_STATE, stageVideoStateChange);
+				_ns.play(videoFilePath);
+				_ns.info
+				_sv.viewPort = new Rectangle(15, 15, 730, 390);
+				var timer:Timer = new Timer(1000);
+				ui.playPause_mc.addEventListener(TouchEvent.TOUCH_TAP, onPlayPause);
+				timer.addEventListener(TimerEvent.TIMER, onTimer);
+				ui.playPause_mc.gotoAndStop("pause");
+				timer.start();
+				
+				_obj.onMetaData = function(infoObject:Object) :void {
+					for (var propName:String in infoObject) {
+						trace(propName + " = " + infoObject[propName]);
+						if( propName == "duration")
+						{
+							var secondsV:Number = Number(infoObject[propName]);
+							//ui.videoTimeTxt.text = infoObject[propName];
+							
+							var secondsV1:int = int(infoObject[propName]);
+							var hrsV1:int = int(secondsV1 / 3600);
+							var minutesV1:int = (int(secondsV1 / 60)) - (hrsV1 * 60);
+							var secondsVal1:int = int(secondsV1%60);
+							
+							
+							var secondsValStr1:String = String(secondsVal1);
+							var minutesVStr1:String = String(minutesV1);
+							var hrsVStr1:String = String(hrsV1);
+							
+							
+							//ui.videoTimeTxt.text = String(hrsV)+":"+String(minutesV)+":"+String(secondsVal);
+							if (secondsVal1 < 10)
+							{
+								secondsValStr1 = "0"+secondsValStr1;
+							}
+							if (minutesV1 < 10)
+							{
+								minutesVStr1 = "0"+minutesVStr1;
+							}
+							if (hrsV1 < 10)
+							{
+								hrsVStr1 = "0"+hrsVStr1;
+							}
+							
+							var timeLim1:String =  hrsVStr1+":"+minutesVStr1+":"+secondsValStr1;
+							ui.videoTimeTxt.width = 80;
+							ui.videoTimeTxt.text = timeLim1;
+							ui.videoTimeTxt.scaleX = 0.9;
+							ui.videoTimeTxt.scaleY = 0.9;
+							
+						}
+					}
+				};
+				
+				_playing = true;
+			}
+			
+			
+			
+			
+			private function onPlayPause(e:TouchEvent):void
+			{
+				if(_playing)
+				{
+					_ns.pause();
+					ui.playPause_mc.gotoAndStop("play");
+					_playing = false;
+				}
+				else
+				{
+					_ns.play();
+					ui.playPause_mc.gotoAndStop("pause");
+					_playing = true;
+				}
+			}
+		
+			private function onTimer(e:TimerEvent):void
+			{
+				if(ui)
+				{
+					ui.videoDurationTxt.text = _currentTime.toString();
+					var secondsV:int = _currentTime;
+					var hrsV:int = int(secondsV / 3600);
+					var minutesV:int = (int(secondsV / 60)) - (hrsV * 60);
+					var secondsVal:int = int(secondsV%60);
+					
+					
+					var secondsValStr:String = String(secondsVal);
+					var minutesVStr:String = String(minutesV);
+					var hrsVStr:String = String(hrsV);
+					
+					
+					//ui.videoTimeTxt.text = String(hrsV)+":"+String(minutesV)+":"+String(secondsVal);
+					trace("Time : "+String(hrsV)+":"+String(minutesV)+":"+String(secondsVal));
+					if (secondsVal < 10)
+					{
+						secondsValStr = "0"+secondsValStr;
+					}
+					if (minutesV < 10)
+					{
+						minutesVStr = "0"+minutesVStr;
+					}
+					if (hrsV < 10)
+					{
+						hrsVStr = "0"+hrsVStr;
+					}
+					
+					var timeLim:String =  hrsVStr+":"+minutesVStr+":"+secondsValStr;
+					ui.videoDurationTxt.width = 80;
+					ui.videoDurationTxt.scaleX = 0.9;
+					ui.videoDurationTxt.scaleY = 0.9;
+					ui.videoDurationTxt.x = 230;
+					ui.videoDurationTxt.text = timeLim;
+					trace(ui.videoDurationTxt.text);
+				}
+			}
+			
+			public function setPPTHori():void
+			{
+				if(_sv && ui)
+				{
+					_sv.viewPort = new Rectangle(25, 83, 480, 350);
+					ui.x = -150;
+					ui.y =  -20;
+					ui.width = 400;
+					ui.height = 300;
+				}
+				
+			}
+			
+			public function setPPTVerti():void
+			{
+				if(_sv && ui)
+				{
+					_sv.viewPort = new Rectangle(15, 15, 730, 390);
+					ui.width = 500;
+					ui.height = 350;
+					ui.x = -120;
+					ui.y = -140;
+				}
+			}
+			
+			protected function uiIos_addedToStageHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Label id="lab" text="testing" x="-10" y="10" visible="true" includeInLayout="true"/>
+</s:Group>

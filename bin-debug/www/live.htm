@@ -1,0 +1,69 @@
+<html>
+<head> 
+  <title>Cupertino Streaming</title>
+<script type="text/javascript" src="jquery-1.11.1.min.js"></script>  
+<script type="text/javascript" src="StageWebViewBridge.js"></script>  
+<script>
+
+	var calling = false;
+	var times = 0;
+	
+	function initList() {
+		$('body').bind('touchmove', function(e){e.preventDefault()});
+		$('#video_player').bind('touchmove', function(e){e.preventDefault()});
+		$('#video_player').bind('play', function(e){
+		window.setInterval(function(){
+  		updateTime();
+		}, 1000);
+		});
+	}
+		
+	function updateTime() {
+		var myVideoPlayer = document.getElementById('video_player');
+		if(calling)
+		{
+			myVideoPlayer.play();
+			myVideoPlayer.currentTime = times;
+			calling = false;
+		}
+		else
+		{
+			StageWebViewBridge.call('updatedAS', null, { title:'player', val:myVideoPlayer.currentTime});
+		}
+	}	
+		
+	function playVideo() {
+		var myVideoPlayer = document.getElementById('video_player');
+		myVideoPlayer.play();
+		}
+		
+	function pauseVideo() {
+		var myVideoPlayer = document.getElementById('video_player');
+		myVideoPlayer.pause();
+	}		
+
+	
+	function seekTo(seekToTime) {
+		var myVideoPlayer = document.getElementById('video_player');
+		myVideoPlayer.pause();
+		times = seekToTime.text;
+		if(myVideoPlayer.readyState == 4)
+		{
+			myVideoPlayer.play();
+			myVideoPlayer.currentTime = seekToTime.text;
+		}		
+		else
+		{
+			myVideoPlayer.play();
+			myVideoPlayer.currentTime = seekToTime.text;
+			//seekTo(seekToTime);
+		}
+	}
+	
+</script>
+</head>
+<body onLoad="initList()">
+<video width="100%" height="90%" id="video_player" controls src="assets/test.mp4" type="video/mp4">
+</video>
+</body>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+</html>

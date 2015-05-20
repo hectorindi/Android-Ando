@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" xmlns:components="spark.components.*" title="HomeView">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+			import flash.filters.ColorMatrixFilter;
+			import mx.events.FlexEvent;
+			private var myCam:CameraUI;
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				theImage.filters = [];
+				if (CameraUI.isSupported){
+					myCam.launch(MediaType.IMAGE);
+				}
+			}
+			
+			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				if (CameraUI.isSupported){
+					myCam = new CameraUI();
+					myCam.addEventListener(MediaEvent.COMPLETE, onComplete);
+				}
+			}
+			
+			private function onComplete(evt:MediaEvent):void{
+				theImage.source = evt.data.file.url;
+			}
+			
+			private function transformImage():void
+			{
+				var matrixArray:Array =[ .33,.33,.33,0,0,
+					.33,.33,.33,0,0,
+					.33,.33,.33,0,0,
+					0,0,0,1,0];
+				var blackWhiteFilter:ColorMatrixFilter = new ColorMatrixFilter(matrixArray);
+				
+				theImage.filters = [blackWhiteFilter];
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Button x="10" click="button1_clickHandler(event)" y="17" label="TAKE A PICTURE" width="220" height="93"/>
+	<s:Button x="250" click="transformImage()" y="17" label="APPLY FILTER" width="220" height="93"/>
+	<s:Image id="theImage" height="649" y="124" width="460" x="10"/>
+</components:View>

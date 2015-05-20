@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+			
+			public function get currentTime():Number
+			{
+				if(this)
+				{
+					//_currentTime = this.currentTime;
+				}
+				return 0;
+			}
+			
+			public function set currentTime(value:Number):void
+			{
+				
+			}
+			
+			public function setPPTHori():void
+			{
+				if(this)
+				{
+					
+				}
+				
+			}
+			
+			public function setPPTVerti():void
+			{
+				if(this)
+				{
+					
+				}
+			}
+
+
+			public function init():void
+			{
+				var webView:StageWebView = new StageWebView();
+				webView.stage = this.stage;
+				webView.viewPort = new Rectangle( 20, 85, 500, 350);
+				var src:File = File.applicationDirectory.resolvePath("myFolder/index.html");
+				//var newPath:String = "http://192.168.2.24/html/live2.htm";
+				var newPath:String = "http://is2.wstream.net/iosnew.htm";
+				webView.loadURL(newPath);
+			}
+			
+		]]>
+	</fx:Script>
+</s:Group>

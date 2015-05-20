@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%">
+	
+	<fx:Script>
+		<![CDATA[
+			
+			
+			private var _path:String = "";
+			
+			protected function submitButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var loader:URLLoader = new URLLoader();
+				//var request:URLRequest = new URLRequest("http://webcasts.conferindia.com/jnj/demo"+"/question.asp");
+				var request:URLRequest = new URLRequest(_path+"/question.asp");
+				request.method = URLRequestMethod.POST;
+				loader.dataFormat = URLLoaderDataFormat.VARIABLES.toLocaleUpperCase();
+				
+				var variables:URLVariables = new URLVariables();
+				variables.userID = queBy.text;
+				variables.location = location.text;
+				variables.speaker = "speaker";
+				variables.Message = query.text;
+				variables.ipaddress = "127.0.0.1";
+				request.data = variables;
+				
+				loader.addEventListener(Event.COMPLETE, urlLoader_existsHandler);
+				loader.load(request);
+				
+			}
+			
+			public function setAppPath(path:String):void
+			{
+				// TODO Auto-generated method stub
+				_path = path;
+				
+			}
+			
+			private function urlLoader_existsHandler(e:Event):void
+			{
+				query.text = "Query Submitted";
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:BorderContainer height="100%" width="100%" cornerRadius="5" borderVisible="true" borderWeight="0.5">
+		<s:layout>
+			<s:VerticalLayout paddingTop="5" paddingLeft="5" paddingRight="5"/>
+		</s:layout>
+		<s:HGroup height="90%" width="100%">
+			<s:VGroup height="90%" width="40%">
+				<s:HGroup width="100%" height="50%">
+					<s:Label text="Question by:" width="40%" fontSize="12" paddingTop="7"/>
+					<s:TextInput id="queBy" width="60%" fontSize="12" maxHeight="30" skinClass="spark.skins.mobile.TextInputSkin"/>
+				</s:HGroup>
+				<s:HGroup width="100%" height="50%">
+					<s:Label text="Location:" width="40%" fontSize="12" paddingTop="7"/>
+					<s:TextInput id="location" width="60%"  fontSize="12" maxHeight="30" skinClass="spark.skins.mobile.TextInputSkin"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:VGroup height="90%" width="60%">
+				<s:TextArea id="query" fontSize="12" maxHeight="40">
+					
+				</s:TextArea>
+				<s:Button id="submitButton" label="Submit" fontSize="12" maxHeight="30" skinClass="skins.ButtonSkin" click="submitButton_clickHandler(event)"/>
+			</s:VGroup>
+		</s:HGroup>
+	</s:BorderContainer>
+</s:Group>

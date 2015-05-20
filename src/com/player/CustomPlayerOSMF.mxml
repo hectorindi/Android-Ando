@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import org.denivip.osmf.plugins.HLSPluginInfo;
+			import org.osmf.containers.MediaContainer;
+			import org.osmf.events.BufferEvent;
+			import org.osmf.events.LoadEvent;
+			import org.osmf.events.MediaElementEvent;
+			import org.osmf.events.MediaErrorEvent;
+			import org.osmf.events.MediaFactoryEvent;
+			import org.osmf.events.MediaPlayerCapabilityChangeEvent;
+			import org.osmf.events.PlayEvent;
+			import org.osmf.events.SeekEvent;
+			import org.osmf.events.TimeEvent;
+			import org.osmf.events.TimelineMetadataEvent;
+			import org.osmf.media.DefaultMediaFactory;
+			import org.osmf.media.MediaElement;
+			import org.osmf.media.MediaPlayer;
+			import org.osmf.media.PluginInfoResource;
+			import org.osmf.media.URLResource;
+			import org.osmf.metadata.CuePoint;
+			import org.osmf.metadata.TimelineMetadata;
+			import org.osmf.traits.MediaTraitType;
+			import org.osmf.traits.PlayState;
+			
+			private var _currentTime:Number = 0.0;
+			//private var HLS_VIDEO:String = "http://is2.wstream.net//hds-live/live/_definst_/jnj150406/jnj150406.f4m";
+			private var HLS_VIDEO:String = "http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv"
+			//private var HLS_VIDEO:String = "http://qthttp.akamai.com.edgesuite.net/iphone_demo/Video_Content/martha_stewart/blueberry_pies/all.m3u8";
+			//private var HLS_VIDEO:String = "http://is2.wstream.net//hls-live/live/_definst_/indegene150319/indegene150319.m3u8";
+			private var player:MediaPlayer;
+			private var element:MediaElement
+			
+			private var _stageVideoAv:Boolean;
+			private var factory:DefaultMediaFactory;
+			private var timer:Timer;
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				//onAdded();
+				this.addEventListener(Event.ADDED_TO_STAGE, onAdded);
+				
+				// TODO Auto-generated method stub
+			}
+			
+			private function onTimerComplete(e:TimerEvent):void
+			{
+				//player.play();
+				timer.stop();
+			}
+			
+			private function onStageVideoAvailability(e:StageVideoAvailabilityEvent):void
+			{
+				_stageVideoAv = (e.availability == StageVideoAvailability.AVAILABLE);
+				//lab.text = lab.text + "Awailability "+ _stageVideoAv ;
+				//init();
+			}
+			
+			private function onAdded(e:Event):void
+			{
+				//lab.text = lab.text + "added to stage  "+ _stageVideoAv+ "stage : "+stage; 
+				stage.addEventListener(StageVideoAvailabilityEvent.STAGE_VIDEO_AVAILABILITY, onStageVideoAvailability);
+				
+			}
+			
+			public function get currentTime():Number
+			{
+				if(this)
+				{
+					//_currentTime = this.currentTime;
+				}
+				return _currentTime;
+			}
+			
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+			}
+			
+			public function init():void
+			{
+				factory = new DefaultMediaFactory();
+				factory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD, onLoadPlugin);
+				factory.addEventListener(MediaFactoryEvent.PLUGIN_LOAD_ERROR, onError);
+				factory.loadPlugin(new PluginInfoResource(new HLSPluginInfo()));
+				
+			}
+			
+			
+			
+			
+			private function capabilityHandler(event:MediaPlayerCapabilityChangeEvent):void
+			{
+				lab.text =  lab.text +"capabilityHandler out /";
+				if(event.type == MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE)
+				{
+					if (player.media.hasTrait(MediaTraitType.LOAD)) 
+					{
+						player.media.getTrait(MediaTraitType.LOAD).addEventListener(LoadEvent.LOAD_STATE_CHANGE, netStreamLoadHandler);
+						lab.text = lab.text + "capabilityHandler in/";
+					}
+				}
+			}
+			
+			private function netStreamLoadHandler(e:LoadEvent):void {
+				player.media.getTrait(MediaTraitType.LOAD).removeEventListener(LoadEvent.LOAD_STATE_CHANGE, netStreamLoadHandler);
+				var loadTrait:Object = Object(player.media.getTrait(MediaTraitType.LOAD));
+				lab.text = lab.text + "netStreamLoadHandler in/";
+				if(loadTrait != null && loadTrait.hasOwnProperty("netStream")) 
+				{
+					var ns:NetStream =  loadTrait.netStream;
+					lab.text = lab.text + "netStreamLoadHandler got netstream in/";
+				}
+			}
+			
+			private function onMediaError(event:MediaErrorEvent):void {
+				lab.text = lab.text + "onMediaError error "+event.error+"/";
+				lab.text = lab.text + "onMediaError message "+event.error.message+"/";
+				lab.text = lab.text + "onMediaError detail "+event.error.detail+"/";
+				lab.text = lab.text + "onMediaError errorID "+event.error.errorID+"/";
+				lab.text = lab.text + "onMediaError name "+event.error.name+"/";
+			}
+			
+			private function onBufferingChange(event:BufferEvent):void {
+				lab.text =  lab.text + "onBufferingChange "+event.buffering+"/";
+			}
+			
+			private function onPlayStateChange(event:PlayEvent):void {
+				if (event.playState == PlayState.PLAYING) {
+					lab.text = lab.text +  "onPlayStateChange"+PlayState.PLAYING+"/";
+				}
+				else {
+					lab.text = lab.text + "onPlayStateChange "+PlayState.PLAYING+"/";	
+				}
+			}
+			
+			private function onSeekingChange(event:SeekEvent):void {
+				lab.text = lab.text + "onSeekingChange "+event.seeking+"/";
+			}
+			
+			private function onTimeChange(event:TimeEvent):void {
+				currentTime = event.time;
+				lab.text =   lab.text +"onTimeChange " + event.time+"/" ;
+			}
+			
+			private function onDurationChange(event:TimeEvent):void {
+				//lab.text = " onTimeChange " +event.time ;
+			}
+			
+			
+			
+			private function  onError(e:Event):void
+			{
+				
+			}
+			
+			private function  onLoadPlugin(e:Event):void
+			{
+				var res:URLResource =new URLResource(HLS_VIDEO);
+				
+				
+				element = factory.createMediaElement(res);
+				if (element == null) throw new Error('Unsupported media type!');
+				
+				player = new MediaPlayer(element);
+				element.addEventListener(MediaElementEvent.METADATA_ADD, onMetadataAdd);
+				player.addEventListener(MediaErrorEvent.MEDIA_ERROR, onMediaError);
+				player.addEventListener(BufferEvent.BUFFERING_CHANGE, onBufferingChange);
+				player.addEventListener(PlayEvent.PLAY_STATE_CHANGE, onPlayStateChange);
+				player.addEventListener(SeekEvent.SEEKING_CHANGE, onSeekingChange);
+				player.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, onTimeChange);
+				player.addEventListener(TimeEvent.DURATION_CHANGE, onDurationChange);
+				player.addEventListener( MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE, capabilityHandler);
+				
+				var container:MediaContainer = new MediaContainer();
+				container.addMediaElement(element);
+				container.scaleX = .75;
+				container.scaleY = .75;
+				
+				videoPod.addChild(container);
+				container.x = 0;
+				container.y = 0;
+				/*timer = new Timer(9000);
+				timer.addEventListener(TimerEvent.TIMER, onTimerComplete);
+				player.media = element;
+				timer.start();*/
+			}
+			
+			private function onMetadataAdd(event:MediaElementEvent):void
+			{
+				if (event.namespaceURL == CuePoint.DYNAMIC_CUEPOINTS_NAMESPACE)
+				{
+					var timelineMetadata:TimelineMetadata = element.getMetadata(CuePoint.DYNAMIC_CUEPOINTS_NAMESPACE) as TimelineMetadata;
+					timelineMetadata.addEventListener(TimelineMetadataEvent.MARKER_TIME_REACHED, onCuePoint);
+				}
+			}
+			
+			private function onCuePoint(event:TimelineMetadataEvent):void
+			{
+				var cuePoint:CuePoint = event.marker as CuePoint;
+				trace("Cue Point at " + cuePoint.time);
+			}
+			
+			public function setPPTHori():void
+			{
+				if(this)
+				{
+					
+				}
+				
+			}
+			
+			public function setPPTVerti():void
+			{
+				if(this)
+				{
+					
+				}
+			}
+			
+			public function onMetaInfo(e:Object):void
+			{
+				var pptStr:String = "";
+				lab.text = lab.text + "on Meta Info" +  e.toString();
+				if(e.hasOwnProperty("UserText"))
+				{
+					lab.text = lab.text + "added to stage  " + "Video meta data from FMS" + "</br>";;
+					pptStr = e.UserText.data
+				}
+				else
+				{
+					lab.text = lab.text + "added to stage  "+ "Video meta data from WOWZA" + "</br>";;
+					pptStr = e.toString();
+				}
+			}
+		]]>
+	</fx:Script>
+	<mx:UIComponent id="videoPod" x="3" y="3">
+		
+	</mx:UIComponent>
+	<s:TextArea id="lab" height="100%" text="testing" x="-10" y="10" visible="false" includeInLayout="false"/>
+</s:Group>

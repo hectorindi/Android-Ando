@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" creationComplete="group1_creationCompleteHandler(event)" xmlns:player="com.player.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.encast.WowzaCustomEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.components.Image;
+			
+			private var _pptName:String;
+			private var _slide:int = 0;
+			private var _size:int = 0;
+			
+			private var _newX:int = 0;
+			
+			[Bindable] public var horizontalScrollPositions:Number=0;
+			[Bindable] public var verticalScrollPositions:Number=0;
+			
+			private var velocityX:Number = 0;
+			private var acceleration:Number = 120;
+			private var friction:Number = 0.8;
+			private var maxVel:Number = 325;
+			
+			
+			public function initSlides(pptName:String,size:int):void
+			{
+				_pptName = pptName;
+				_size = size;
+				
+				for (var count:int = 1; count <= _size; count++)
+				{
+					var slideImage:Image = new Image();
+					slideImage.width = 100;
+					slideImage.height = 100;					
+					if(count < 10)
+					{
+						//slideImage.source = slideLocationPath+"/s100"+slide+".jpg";
+						var file:File = File.applicationDirectory.resolvePath("assets/presentations/"+_pptName+"/s100"+count+".jpg");
+						slideImage.source = file.url;
+						//_player.lab.text = slideLocationPath+"/s100"+slide+".jpg";
+					}
+					else
+					{
+						//slideImage.source = slideLocationPath+"/s10"+slide+".jpg";
+						var file2:File = File.applicationDirectory.resolvePath("assets/presentations/"+_pptName+"/s10"+count+".jpg");
+						slideImage.source = file2.url;
+						//_player.lab.text = slideLocationPath+"/s10"+slide+".jpg";
+					}
+					//slideImage.scaleX = 0.2;
+					//slideImage.scaleY = 0.2;;					
+					newGrp.addElement(slideImage);
+					
+					if(count == 1)
+					{
+						slideImage.x = 0;
+					}
+					else
+					{
+						slideImage.x = _newX + 100;
+					}
+					_newX =  slideImage.x;
+					slideImage.y = -10;
+					slideImage.addEventListener(MouseEvent.CLICK, onSlideClick);
+					//slideImage.filters = new Array(new GlowFilter());
+					mbContainer.addEventListener(TransformGestureEvent.GESTURE_SWIPE, onSwipe);
+					//mbContainer.addEventListener(TouchEvent.TOUCH_BEGIN, onTouchBegine);
+				}
+			}
+			
+			
+			private function onFrame(e:Event):void
+			{
+				if(velocityX < maxVel)
+				{
+					velocityX *= friction;
+					mbContainer.horizontalScrollPosition -= velocityX;
+				}
+			}
+			
+			private function onSlideClick(e:MouseEvent):void
+			{
+				var object:Object = new Object();
+				var url:String = e.currentTarget.source;
+				var temp:Array = url.split("s1");
+				var filename:String = temp[1];
+				var flieArr:Array = filename.split(".jpg");
+				var slide:int = int(flieArr[0]);
+				object.slide = slide;
+				dispatchEvent(new WowzaCustomEvent("slideSelected",true,false,object));
+				velocityX = 0;
+				mbContainer.removeEventListener(Event.ENTER_FRAME, onFrame);
+			}
+			
+			private function onTouchBegine(e:TouchEvent):void
+			{
+				
+			}
+			
+			private function onSwipe(event:TransformGestureEvent):void {
+				// A swipe to the left means the offsetX property will be -1
+				// A swipe to the right means the offsetX position will be 1
+				mbContainer.addEventListener(Event.ENTER_FRAME, onFrame);
+				if(event.offsetX == -1) {
+					//mbContainer.horizontalScrollPosition = mbContainer.horizontalScrollPosition + 10;
+					velocityX -= acceleration;
+				} else if(event.offsetX == 1) {
+					//mbContainer.horizontalScrollPosition = mbContainer.horizontalScrollPosition - 10;
+					velocityX += acceleration;
+				}
+				
+				// The same principle applies to the vertical swipe gesture, so
+				// a swipe to the top means the offsetY position will be -1
+				// A swipe to the bottom means the offsetY position will be 1
+				/*if(event.offsetY == -1) {
+					doSwipeTop();
+				} else if(event.offsetY == 1) {
+					doSwipeBottom();
+				}*/
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				/*var rect:Sprite = new Sprite();
+				var w:Number = innerGroup.width;
+				var h:Number = innerGroup.height;
+				var cornerRadius:uint = 60;
+				rect.graphics.clear();
+				rect.graphics.beginFill(0xFF0000);
+				rect.graphics.drawRect(0, 0, w, h);
+				rect.graphics.endFill();
+				innerGroup.mask = rect;*/
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Group id="innerGroup" width="100%" height="100%" horizontalCenter="0" maskType="clip">
+				<player:MaskingBorder id="mbContainer"
+							  width="100%" height="100%"
+							  >
+			<s:Group id="newGrp" width="100%" height="100%"/>
+		</player:MaskingBorder>
+	</s:Group>
+</s:Group>

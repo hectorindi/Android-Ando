@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import org.osmf.containers.MediaContainer;
+			import org.osmf.events.LoadEvent;
+			import org.osmf.events.MediaPlayerCapabilityChangeEvent;
+			import org.osmf.events.TimelineMetadataEvent;
+			import org.osmf.media.DefaultMediaFactory;
+			import org.osmf.media.MediaElement;
+			import org.osmf.media.MediaPlayer;
+			import org.osmf.media.URLResource;
+			import org.osmf.metadata.CuePoint;
+			import org.osmf.traits.MediaTraitType;
+			
+			private var _currentTime:Number = 0.0;
+			//URI of the media
+			//public static const PROGRESSIVE_PATH:String =
+				//"http://mediapm.edgesuite.net/strobe/content/test/AFaerysTale_sylviaApostol_640_500_short.flv";
+			
+			private var _path:String;
+			
+			//public var  PROGRESSIVE_PATH:String = "http://is2.wstream.net//hds-live/live/_definst_/genpact/genpact.f4m";
+			public static const PROGRESSIVE_PATH:String = "http://is.wstream.net/live/genpact/manifest.f4m"
+			
+			public var player:MediaPlayer;
+			public var container:MediaContainer;
+			public var mediaFactory:DefaultMediaFactory;
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				//onAdded();
+				this.addEventListener(Event.ADDED_TO_STAGE, onAdded);
+				
+				// TODO Auto-generated method stub
+			}
+			
+			private function onAdded(e:Event):void
+			{
+				
+			}
+			
+			public function get currentTime():Number
+			{
+				if(this)
+				{
+					//_currentTime = this.currentTime;
+				}
+				return _currentTime;
+			}
+			
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+			}
+			
+			public function init(path:String):void
+			{
+				var resource:URLResource = new URLResource( PROGRESSIVE_PATH );
+				_path = path;
+				//PROGRESSIVE_PATH = PROGRESSIVE_PATH.replace("^",path);
+				// Create a mediafactory instance
+				mediaFactory = new DefaultMediaFactory();
+				
+				//creates and sets the MediaElement (generic) with a resource and path
+				var element:MediaElement = mediaFactory.createMediaElement( resource );
+								
+				//the simplified api controller for media
+				player = new MediaPlayer( element );
+				player.addEventListener( MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE, capabilityHandler);
+				
+				//the container (sprite) for managing display and layout
+				container = new MediaContainer();
+				container.addMediaElement( element );
+				
+				
+				container.width = 250;
+				container.height = 250;
+				
+				container.x = -2;
+				container.y = -40;
+				
+				//Fit the player size
+				/*container.width = Capabilities.screenResolutionX ;
+				container.height = Capabilities.screenResolutionY - FlexGlobals.topLevelApplication.actionBar.height;*/
+				
+				//Adds the container to the stage
+				videoPod.addChild( container );
+				
+			}
+			
+			private function capabilityHandler(event:MediaPlayerCapabilityChangeEvent):void
+			{
+				//lab.text =  lab.text +"capabilityHandler out /";
+				if(event.type == MediaPlayerCapabilityChangeEvent.CAN_PLAY_CHANGE)
+				{
+					if (player.media.hasTrait(MediaTraitType.LOAD)) 
+					{
+						player.media.getTrait(MediaTraitType.LOAD).addEventListener(LoadEvent.LOAD_STATE_CHANGE, netStreamLoadHandler);
+						//lab.text = lab.text + "capabilityHandler in/";
+						
+					}
+				}
+			}
+			
+			private function netStreamLoadHandler(e:LoadEvent):void {
+				player.media.getTrait(MediaTraitType.LOAD).removeEventListener(LoadEvent.LOAD_STATE_CHANGE, netStreamLoadHandler);
+				var loadTrait:Object = Object(player.media.getTrait(MediaTraitType.LOAD));
+				//lab.text = lab.text + "netStreamLoadHandler in/";
+				if(loadTrait != null && loadTrait.hasOwnProperty("netStream")) 
+				{
+					var ns:NetStream =  loadTrait.netStream;
+					var _obj:Object = new Object();
+					
+					ns.bufferTime = 2;
+					
+					_obj.onMetaInfo = onMetaInfo;
+					_obj.onDataEvent = onMetaInfo;
+					_obj.sendDataEvent  = onMetaInfo;
+					_obj.cuechange = onMetaInfo;
+					_obj.onCueChange = onMetaInfo;
+					
+					ns.client = _obj;
+					
+					//lab.text = lab.text + "netStreamLoadHandler got netstream in/";
+				}
+			}
+			
+			private function onCuePoint(event:TimelineMetadataEvent):void
+			{
+				var cuePoint:CuePoint = event.marker as CuePoint;
+				//lab.text = lab.text + "Cue Point at " + cuePoint.time;
+			}
+			
+			public function setPPTHori():void
+			{
+				if(this)
+				{
+					
+				}
+				
+			}
+			
+			public function setPPTVerti():void
+			{
+				if(this)
+				{
+					
+				}
+			}
+			
+			public function onMetaInfo(e:Object):void
+			{
+				var pptStr:String = "";
+				lab.text = lab.text + "on Meta Info" +  e.toString();
+				if(e.hasOwnProperty("UserText"))
+				{
+					//lab.text = lab.text + "added to stage  " + "Video meta data from FMS" + "</br>";
+					lab.text = lab.text + " FMS data " + e.UserText.data;
+					pptStr = e.UserText.data;
+					var slideArr:Array = pptStr.split("^");
+					var event:SlideEvent = new SlideEvent(SlideEvent.SLIDE_CHNAGED);
+					event.slideNo = slideArr[1];
+					dispatchEvent(event);
+				}
+				else
+				{
+					//lab.text = lab.text + "added to stage  "+ "Video meta data from WOWZA" + "</br>";;
+					pptStr = e.toString();
+				}
+			}
+		]]>
+	</fx:Script>
+	<mx:UIComponent id="videoPod" x="3" y="3" z="10">
+		
+	</mx:UIComponent>
+	<s:TextArea id="lab" height="100%" text="testing" x="-10" y="10" visible="false" includeInLayout="false"/>
+</s:Group>

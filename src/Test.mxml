@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" applicationDPI="240">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				var resX:int = Capabilities.screenResolutionX;
+				var resY:int = Capabilities.screenResolutionY;
+				test.text = "resx : "+resX+" resY : "+resY+ " outerBorder : "+outerBorder.width+" outerBorder height : "+outerBorder.height;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:BorderContainer id="outerBorder" width="100%" height="100%" creationComplete="bordercontainer1_creationCompleteHandler(event)">
+		<s:TextArea id="test"/>
+	</s:BorderContainer>
+	
+</s:Application>

@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:video="fl.video.*"
+			   applicationDPI="240"
+			   top="5"
+			   bottom="5"
+			   splashScreenImage="com.player.SplashScreenComp"
+			   creationComplete="view1_creationCompleteHandler(event)" 
+			   preinitialize="application1_preinitializeHandler(event)"
+			   backgroundColor="#cccccc" 
+			   backgroundAlpha="0.5"
+			   xmlns:player="com.player.*" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.AS.Main;
+			import com.player.SlideEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import views.ReadQrCodeSample;
+			
+			private var _orientation:String = "";
+			private var testQR:ReadQrCodeSample;
+			
+			private var resX:Number;
+			private var resY:Number;
+			
+			private static var _screenClass:Class;
+			private var fullScreen:Boolean;
+			private static var checkedForScreenClass:Boolean;
+			private var beforeFullScreenInfo:Object;
+			private var main:Main;
+			
+			private static var _screenClassSD:Class;
+			private var fullScreenSD:Boolean;
+			private static var checkedForScreenClassSD:Boolean;
+			private var beforeFullScreenInfoSD:Object;
+			private var isHD:Boolean = false;
+			private var isFullHD:Boolean = false;
+			
+			
+			
+			private var arg:String = "testing";
+			private	var path:String = "";
+			private var pathPPT:String = "";
+			private var pathInit:Boolean = false;
+			
+			
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvoke);
+				//runtimeDPIProvider="com.AS.CustomRuntimeDPIProvider" 
+				
+				
+				var thisScreen:Screen = Screen.mainScreen;
+				trace("Width : "+thisScreen.visibleBounds.width+" height : "+thisScreen.visibleBounds.height);
+				var newScaleX:Number = thisScreen.visibleBounds.width / 1019 * 0.98;
+				var newScaleY:Number = thisScreen.visibleBounds.height / 680 * 0.98;
+				var newScale:Number = Math.min(newScaleX,newScaleY,1);
+				if(isHD && isFullHD == false)
+				{
+					outerBorderHD.visible = true;
+					outerBorderHD.includeInLayout = true;
+				}
+				else if(isFullHD)
+				{					
+					outerBorderFullHD.visible = true;
+					outerBorderFullHD.includeInLayout = true;
+				}
+				else
+				{
+					outerBorder.visible = true;
+					outerBorder.includeInLayout = true;
+				}
+				
+				this.addEventListener(Event.ADDED_TO_STAGE,onAddedToStage );
+			}
+			
+			private function onInvoke(event:InvokeEvent):void
+			{
+				// get the data from the url pass parameter as location , pptname and live/archive
+				
+				//----------------------------------------------------------------------------------------------------------------------
+				
+				/*arg = event.arguments.toString();
+				//slideQuery.query.text = arg;
+				var argArrBig:Array=  arg.split("//")
+				var argArr:Array = argArrBig[1].split("&");
+				
+				path = argArr[0];
+				pathPPT = argArr[1];
+				
+				
+				//slideQuery.query.text =slideQuery.query.text + "invoked"
+				if(slideQuery)
+				{
+				if(slideQuery.query)
+				{
+				//slideQuery.query.text = slideQuery.query.text + " path "+ path+ "pathPPT "+pathPPT;
+				}
+				}*/
+				
+				//path = "http://"+path+"&"+pathPPT;
+				
+				// --------------------------------------------------------------------------------------------------------------------
+				
+				//for testing lauching without invoking from a link use below else use above 
+				
+				//---------------------------------------------------------------------------------------------------------------------
+				
+				//path = "webcasts.conferindia.com/hcl/150427/Investor&Investors_Webcast_Q3_Final_27th_April&hclinvestor150427"
+				//path = "http://sicotoep.com/events/150508&defaultslide&oep150508"
+				path = "http://wstream.net/pgi/150519&test&pgi150519"
+				slideQuery.query.text = "path news "+ path;
+				pathInit = true;
+				if(pathInit && stage)
+				{
+					//slideQuery.query.text = slideQuery.query.text + "path " + path;
+					onCompleteQRcode(path);
+					var pathArr:Array = path.split("&");									
+					if(isHD)
+					{
+						bannerHD.source = pathArr[0]+"/images/996x61_header.jpg";
+						//slideQueryFullHD.isHD = true;
+						slideQueryHD.setAppPath(pathArr[2]);
+					}
+					else if (isFullHD)
+					{
+						bannerFullHD.source = pathArr[0]+"/images/996x61_header.jpg";
+						//slideQueryFullHD.isFullHD = true;
+						slideQueryFullHD.setAppPath(pathArr[2]);
+					}
+					else 
+					{
+						banner.source = pathArr[0]+"/images/996x61_header.jpg";
+						//slideQuery.isHD = false;
+						slideQuery.setAppPath(pathArr[2]);
+					}
+					
+					//banner.source ="assets/996x61_header.jpg";
+				}
+				
+			}
+			
+			
+			private function onAddedToStage( event:Event ):void 
+			{
+				if(pathInit && stage)
+				{
+					//slideQuery.query.text = slideQuery.query.text + "path " + path;
+					onCompleteQRcode(path);
+					var pathArr:Array = path.split("&");
+					if(isHD)
+					{
+						bannerHD.source = pathArr[0]+"/images/996x61_header.jpg";
+						slideQueryHD.setAppPath(pathArr[2]);
+					}
+					else if(isFullHD)
+					{
+						bannerFullHD.source = pathArr[0]+"/images/996x61_header.jpg";
+						slideQueryFullHD.setAppPath(pathArr[2]);
+					}
+					else
+					{
+						banner.source = pathArr[0]+"/images/996x61_header.jpg";
+						slideQuery.setAppPath(pathArr[2]);
+					}
+					//banner.source ="assets/996x61_header.jpg";
+				}
+				
+				_orientation = stage.orientation;
+			}
+			
+			private function onCompleteQRcode(data:String):void
+			{
+				//testQR.destroy();
+				//testQR = null;
+				stage.orientation; 
+				_orientation = stage.deviceOrientation; 
+				//this.stage.setOrientation( StageOrientation.ROTATED_RIGHT );
+				if(true)
+				{
+					//currentState = "CompleteHori";	
+					if(isHD)
+					{
+						main = new Main(CompleteHoriGrpHD,data,showAll,playerHD, null,null,slideQueryHD);
+						main.isHD = true;
+					}
+					else if (isFullHD)
+					{
+						main = new Main(CompleteHoriGrpFullHD,data,showAll,playerFullHD, null,null,slideQueryFullHD);	
+						main.isFullHD = true;
+					}
+					else
+					{
+						player.lab.text = player.lab.text + "in main";
+						player.addEventListener(SlideEvent.SLIDE_CHNAGED, onSlideChange)
+						main = new Main(CompleteHoriGrp,data,showAll,player, null,null,slideQuery);		
+					}
+					
+					
+					//currentState = "CompleteHori";
+					//slideShow.initSlides(main.pptName,main.SlideArray.length);
+					//currentState = "CompleteHori";						
+					//main.setPPTRes();
+					if(isHD)
+					{		
+						playerHD.width = 400;
+						playerHD.height = 360;
+						//main.setPPTRes();
+						
+					}
+					else if(isFullHD && isHD == false)
+					{
+						playerFullHD.width = 620;
+						playerFullHD.height = 400;
+					}
+					else
+					{
+						player.width = 350;
+						player.height = 175;
+						player.scaleX = 1;
+						player.scaleY = 1;
+						//main.setPPTRes();
+					}
+				}		
+				
+			}
+			
+			public function onSlideChange(e:SlideEvent):void
+			{
+				main.changeSlide(e.slideNo);
+			}
+			
+			private function showAll(data:String):void
+			{
+				_orientation = stage.orientation;
+				if(true)
+				{
+					/*innerhori.visible = true;
+					innerhori.includeInLayout = true;
+					queryContainerHori.visible = true;
+					queryContainerHori.includeInLayout = true;*/
+					//loadScreen.visible = false;
+					//loadScreen.includeInLayout = false;
+					//currentState = "CompleteHori";	
+					//player.playVideo();
+					var pathArr:Array = path.split("&");
+					
+					if(isHD)
+					{
+						innerhoriHD.visible = true;
+						innerhoriHD.includeInLayout = true;
+						queryContainerHoriHD.visible = true;
+						queryContainerHoriHD.includeInLayout = true;
+						//playerHD.isHD = true;
+						playerHD.init(pathArr[2]);
+					}
+					else if (isFullHD)
+					{
+						innerhoriFullHD.visible = true;
+						//slideQueryFullHD.isFullHD = true;
+						innerhoriFullHD.includeInLayout = true;
+						queryContainerHoriFullHD.visible = true;
+						queryContainerHoriFullHD.includeInLayout = true;
+						//playerFullHD.isFullHD = true;
+						playerFullHD.init(pathArr[2]);
+					}
+					else
+					{
+						//player.isHD = false;
+						//slideQuery.isFullHD = false;
+						player.init(pathArr[2]);
+						innerhori.visible = true;
+						innerhori.includeInLayout = true;
+						queryContainerHori.visible = true;
+						queryContainerHori.includeInLayout = true;
+					}
+				}
+			}
+			
+			private function onAddedToStageVert(e:Event):void
+			{
+				//
+			}
+			
+			protected function player_creationCompleteHandler(event:FlexEvent):void
+			{
+				resX = Capabilities.screenResolutionX;
+				resY = Capabilities.screenResolutionY;
+				if(player)
+				{
+					player.lab.text = "resx : "+resX+" resY : "+resY+ " outerBorder : "+outerBorder.width+" outerBorder height : "+outerBorder.height;
+				}
+			}
+			
+			protected function slideQuery_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				resX = Capabilities.screenResolutionX;
+				resY = Capabilities.screenResolutionY;
+				//slideQuery.query.text = "resx : "+resX+" resY : "+resY+ " outerBorder : "+outerBorder.width+" outerBorder height : "+outerBorder.height;
+				//slideQuery.query.text = slideQuery.query.text + "arg : "+arg;
+			}
+			
+			protected function slideQueryHD_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				resX = Capabilities.screenResolutionX;
+				resY = Capabilities.screenResolutionY;
+				if(player)
+				{
+					//player.lab.text = "resx : "+resX+" resY : "+resY+ " outerBorder : "+outerBorderHD.width+" outerBorder height : "+outerBorderHD.height;
+				}
+				//slideQuery.query.text = slideQuery.query.text + "arg : "+arg;
+			}
+			
+			protected function application1_preinitializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				// get resolution from device to optimize the screen space
+				
+				resX = 800 ;//Capabilities.screenResolutionX;
+				resY = Capabilities.screenResolutionY;		
+				if(resX > 1000 && resX < 1281)
+				{
+					isHD = true;
+					isFullHD = false;
+					currentState = "HD";
+				}
+				else if(resX < 1000)
+				{
+					isHD = false;
+					isFullHD = false;
+					currentState = "SD";
+				}
+				else if(resX > 1280)
+				{
+					isFullHD = true;
+					isHD = false;
+					currentState = "FullHD";
+					
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="SD"/>
+		<s:State name="HD"/>
+		<s:State name="FullHD"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<!--<video:FLVPlayback id="player" skin="MinimaSilverAll.swf"/>-->
+	</fx:Declarations>
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+	</s:layout>
+	<s:BorderContainer id="outerBorder" cornerRadius="5" borderColor="Black" borderVisible="True" width="98%" height="100%" backgroundAlpha="0.0" includeIn="SD">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center" verticalAlign="bottom" paddingBottom="5"/>
+		</s:layout>
+		<s:Image id="banner" width="95%" height="61"/>
+		<s:Group id="CompleteHoriGrp" width="100%" height="100%">
+			<s:layout>
+				<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+			</s:layout>
+			<s:Group width="100%" name="inner" id="innerhori">
+				<s:layout>
+					<s:HorizontalLayout id="horiLoayout" paddingLeft="-2" paddingTop="5" horizontalAlign="center" verticalAlign="middle"/>
+				</s:layout>
+				<s:BorderContainer id="vidContanerHori" height="100%" name="player" borderColor="white" borderVisible="true" backgroundAlpha="0.0" minWidth="375" minHeight="250" addedToStage="onAddedToStageVert(event)">
+					<s:layout>
+						<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+					</s:layout>
+					<player:CustomPlayerAndroid id="player" name="skinplayer" width="375" height="170" creationComplete="player_creationCompleteHandler(event)"/>
+				</s:BorderContainer>
+				<s:BorderContainer id="slideContainerHori" height="100%" name="slide" borderColor="White" borderVisible="true" backgroundAlpha="0.0" minWidth="375" minHeight="250">
+					<s:layout>
+						<s:VerticalLayout horizontalAlign="left" verticalAlign="middle"/>
+					</s:layout>
+					
+				</s:BorderContainer>
+			</s:Group>
+			<s:BorderContainer id="queryContainerHori" name="slide" borderWeight="1" height="25%" minWidth="750" borderVisible="false" borderColor="red" width="95%" backgroundAlpha="0.0">
+				<s:layout>
+					<s:VerticalLayout id="queryContainerHoriLayout" horizontalAlign="center" verticalAlign="middle" paddingTop="1" paddingBottom="1"/>
+				</s:layout>
+				<player:SlideQuery id="slideQuery" width="100%" creationComplete="slideQuery_creationCompleteHandler(event)" height="100%"/>
+			</s:BorderContainer>
+		</s:Group>
+	</s:BorderContainer>
+	
+	<s:BorderContainer id="outerBorderHD" cornerRadius="5" borderColor="white" borderVisible="True" width="98%" height="98%" backgroundAlpha="0.0" includeIn="HD">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center" verticalAlign="middle" paddingBottom="5"/>
+		</s:layout>
+		<s:Image id="bannerHD" width="95%" height="61" includeIn="HD"/>
+		<s:Group id="CompleteHoriGrpHD" width="100%" height="100%" includeIn="HD">
+			<s:layout>
+				<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+			</s:layout>
+			<s:Group width="100%" height="75%"  name="inner" id="innerhoriHD" includeIn="HD">
+				<s:layout>
+					<s:HorizontalLayout id="horiLoayoutHD" paddingLeft="-2" paddingTop="5" horizontalAlign="center" verticalAlign="middle"/>
+				</s:layout>
+				<s:BorderContainer id="vidContanerHoriHD" height="100%" name="player" borderColor="white" borderVisible="true" backgroundAlpha="0.0" minWidth="400" addedToStage="onAddedToStageVert(event)" includeIn="HD">
+					<s:layout>
+						<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+					</s:layout>
+					<player:CustomPlayerAndroid id="playerHD" name="skinplayer"/>
+				</s:BorderContainer>
+				<s:BorderContainer id="slideContainerHoriHD" height="100%" name="slide" borderColor="white" borderVisible="true" backgroundAlpha="0.0" minWidth="400" minHeight="300" includeIn="HD">
+					<s:layout>
+						<s:VerticalLayout horizontalAlign="left" verticalAlign="middle"/>
+					</s:layout>
+					
+				</s:BorderContainer>
+			</s:Group>
+			<s:BorderContainer id="queryContainerHoriHD" name="slide" borderWeight="1" height="25%" minWidth="750" borderVisible="false" borderColor="red" width="95%" backgroundAlpha="0.0" includeIn="HD">
+				<s:layout>
+					<s:VerticalLayout id="queryContainerHoriLayoutHD" horizontalAlign="center" verticalAlign="middle" paddingTop="1" paddingBottom="1"/>
+				</s:layout>
+				<player:SlideQuery id="slideQueryHD" width="100%" creationComplete="slideQueryHD_creationCompleteHandler(event)" height="100%" includeIn="HD"/>
+			</s:BorderContainer>
+		</s:Group>
+	</s:BorderContainer>
+	
+	<s:BorderContainer id="outerBorderFullHD" cornerRadius="5" borderColor="white" borderVisible="True" width="98%" height="98%" backgroundAlpha="0.0" includeIn="FullHD">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center" verticalAlign="middle" paddingBottom="5"  paddingTop="0"/>
+		</s:layout>
+		<s:Image id="bannerFullHD" width="95%" height="61" includeIn="FullHD"/>
+		<s:Group id="CompleteHoriGrpFullHD" width="100%" height="100%" includeIn="FullHD">
+			<s:layout>
+				<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+			</s:layout>
+			<s:Group width="100%" height="75%"  name="inner" id="innerhoriFullHD" includeIn="FullHD">
+				<s:layout>
+					<s:HorizontalLayout id="horiLoayoutFullHD" paddingLeft="-2" paddingTop="5" horizontalAlign="center" verticalAlign="middle"/>
+				</s:layout>
+				<s:BorderContainer id="vidContanerHoriFullHD" height="100%" name="player" borderColor="white" borderVisible="true" backgroundAlpha="0.0" minWidth="700" minHeight="500" addedToStage="onAddedToStageVert(event)" includeIn="FullHD">
+					<s:layout>
+						<s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+					</s:layout>
+					<player:CustomPlayerAndroid id="playerFullHD" name="skinplayer" visible="false" includeInLayout="false"/>
+				</s:BorderContainer>
+				<s:BorderContainer id="slideContainerHoriFullHD" height="100%" name="slide" borderColor="white" borderVisible="true" backgroundAlpha="0.0" minWidth="700" minHeight="500" includeIn="FullHD">					
+				</s:BorderContainer>
+			</s:Group>
+			<s:BorderContainer id="queryContainerHoriFullHD" name="slide" borderWeight="1" height="25%" minWidth="750" borderVisible="false" borderColor="red" width="95%" backgroundAlpha="0.0" includeIn="FullHD">
+				<s:layout>
+					<s:VerticalLayout id="queryContainerHoriLayoutFullHD" horizontalAlign="center" verticalAlign="middle" paddingTop="1" paddingBottom="20"/>
+				</s:layout>
+				<player:SlideQuery id="slideQueryFullHD" width="100%" creationComplete="slideQueryHD_creationCompleteHandler(event)" height="100%" includeIn="FullHD"/>
+			</s:BorderContainer>
+		</s:Group>
+	</s:BorderContainer>
+</s:Application>
